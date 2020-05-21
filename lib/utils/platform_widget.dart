@@ -6,13 +6,17 @@ abstract class PlatformWidget<A extends Widget, I extends Widget> extends Statel
 
   @override
   Widget build(BuildContext context) {
-    if(Platform.isAndroid) {
+    try {
+      if (Platform.isAndroid) {
+        return createAndroidWidget(context);
+      } else if (Platform.isIOS) {
+        return createIosWidget(context);
+      }
+    } catch (e) {
       return createAndroidWidget(context);
-    } else if (Platform.isIOS) {
-      return createIosWidget(context);
     }
     // platform not supported returns an empty widget
-    return new Container();
+    return createAndroidWidget(context);
   }
 
   I createIosWidget(BuildContext context);
