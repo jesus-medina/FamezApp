@@ -1,9 +1,10 @@
 import 'package:famezapp/utils/colors.dart';
+import 'package:famezapp/utils/platform_stateless_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'platform_widget.dart';
 
-class PlatformScaffold extends PlatformWidget<Scaffold, CupertinoPageScaffold>  {
+
+class PlatformScaffold extends PlatformStalessWidget<Scaffold, CupertinoPageScaffold>  {
   final Widget title;
   final Widget body;
 

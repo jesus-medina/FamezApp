@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import 'platform_widget.dart';
+import 'platform_stateless_widget.dart';
 
-class PlatformApp extends PlatformWidget<MaterialApp, CupertinoApp> {
+class PlatformApp extends PlatformStalessWidget<MaterialApp, CupertinoApp> {
   final String initialRoute;
   final Map<String, WidgetBuilder> routes;
   final RouteFactory onGenerateRoute;

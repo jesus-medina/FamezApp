@@ -33,7 +33,7 @@ class Product {
   };
 }
 
-final List<Product> products = [
+List<Product> getProducts() => [
   Product(
       name: 'Cal Mag D Advanced',
       description: '!CUIDATE AHORA, VIVE SALUDABLE MAÑANA¡',

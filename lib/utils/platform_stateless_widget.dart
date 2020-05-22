@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io' show Platform;
 
-abstract class PlatformWidget<A extends Widget, I extends Widget> extends StatelessWidget {
+abstract class PlatformStalessWidget<A extends Widget, I extends Widget> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
