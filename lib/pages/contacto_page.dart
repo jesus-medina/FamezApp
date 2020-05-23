@@ -19,7 +19,7 @@ class _ContactoPageState extends State<ContactoPage> {
   }
 
   void _initContactoInfoFromFirestore() {
-
+    
   }
 
 }

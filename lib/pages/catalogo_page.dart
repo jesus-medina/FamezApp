@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:famezapp/domain/product_model.dart';
 import 'package:famezapp/pages/catalogo.components/product_card.dart';
-import 'package:famezapp/utils/platform_scaffold.dart';
+import 'package:famezapp/viewmodels/products_list_viewmodel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class CatalogoPage extends StatefulWidget {
@@ -13,57 +14,23 @@ class CatalogoPage extends StatefulWidget {
 }
 
 class _CatalogoPageState extends State<CatalogoPage> {
-  List<Product> products = [];
+  ProductListViewModel vm;
+
+  List<Product> products;
 
   @override
   Widget build(BuildContext context) {
-    _initProductsFromFirestore();
+    vm = Provider.of<ProductListViewModel>(context);
+    setState(() {
+      products = vm.products;
+    });
+    // _initProductsFromFirestore();
     return Scaffold(
         body: ListView(
           padding: EdgeInsets.only(left: 16.0, right: 16.0),
           children: this._mapProductsToCards(context),
         )
     );
-  }
-
-  void _initProductsFromFirestore() {
-    Future<QuerySnapshot> productsDocuments = Firestore.instance.collection('products').orderBy('price').getDocuments();
-    productsDocuments.then(_loadRemoteProducts)
-    .catchError(_onFirestoreError);
-  }
-
-  void _onFirestoreError(dynamic error) {
-    setState(_loadLocalProducts);
-  }
-
-  void _loadLocalProducts() {
-    this.products = getProducts();
-    _sortProductsByPrice();
-  }
-
-  void _loadRemoteProducts(QuerySnapshot querySnapshot) {
-    products.clear();
-    querySnapshot.documents.asMap().forEach((key, DocumentSnapshot documentSnapshot) {
-      Map<String, dynamic> documentData = documentSnapshot.data;
-
-      Product existentProduct = Product(
-        name: documentData['name'],
-        description: documentData['description'],
-        urlImage: documentData['urlImage'],
-        urlCatalogPage: documentData['urlCatalogPage'],
-        urlPictoStory: documentData['urlPictoStory'],
-        urlVideoStory: documentData['urlVideoStory'],
-        availability: documentData['availability'],
-        price: documentData['price'],
-      );
-
-      products.add(existentProduct);
-    });
-    setState(() {});
-  }
-
-  void _sortProductsByPrice() {
-    this.products.sort((a, b) => a.price.compareTo(b.price));
   }
 
   List<Widget> _mapProductsToCards(BuildContext context) =>
