@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:famezapp/domain/familia_model.dart';
 import 'package:famezapp/domain/socio_model.dart';
 import 'package:famezapp/utils/colors.dart';
@@ -58,8 +60,12 @@ class _ContactoPageState extends State<ContactoPage> {
                 children: [
                   FlatButton.icon(
                     icon: Icon(Icons.map, color: FamezColors.primaryDarkColor),
-                    label: Text('VER EN MAPA', style: TextStyle(color: FamezColors.primaryDarkColor)),
-                    onPressed: () {},
+                    label: Text(
+                      'VER EN MAPA',
+                      style: TextStyle(color: FamezColors.primaryDarkColor)),
+                    onPressed: () {
+                      _launchURL(familia.urlGoogleMaps);
+                    },
                   )
                 ],
               ),
@@ -97,41 +103,7 @@ class _ContactoPageState extends State<ContactoPage> {
         ),
         title: Text(socio.fullName()),
       ),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _contactoIconButton(
-            icon: Icons.phone,
-            onPressed: () {
-              _launchURL('tel:${socio.phoneNumber}');
-            },
-          ),
-          _contactoIconButton(
-            icon: Icons.message,
-            onPressed: () {
-              _launchURL('sms:${socio.phoneNumber}');
-            },
-          ),
-          _contactoIconButton(
-            icon: Icons.email,
-            onPressed: () {
-              _launchURL('mailto:${socio.email}');
-            },
-          ),
-          _contactoIconButton(
-            icon: FontAwesome.facebook,
-            onPressed: () {
-              _launchURL(socio.urlFacebook);
-            },
-          ),
-          _contactoIconButton(
-            icon: FontAwesome.whatsapp,
-            onPressed: () {
-              _launchURL(socio.urlWhatsApp);
-            },
-          ),
-        ],
-      )
+      _contactBottomActions(socio),
     ],
   );
 
@@ -141,13 +113,55 @@ class _ContactoPageState extends State<ContactoPage> {
       onPressed: onPressed,
     );
 
+  Widget _contactBottomActions(Socio socio) {
+    List<Widget> actionButtons = [];
+    try {
+      if (Platform.isAndroid || Platform.isIOS) {
+        actionButtons.add(_contactoIconButton(
+          icon: Icons.phone,
+          onPressed: () {
+            _launchURL('tel:${socio.phoneNumber}');
+          },
+        ));
+        actionButtons.add(_contactoIconButton(
+          icon: Icons.phone,
+          onPressed: () {
+            _launchURL('sms:${socio.phoneNumber}');
+          },
+        ));
+      }
+    } catch (e) {}
+    actionButtons.add(_contactoIconButton(
+      icon: Icons.email,
+      onPressed: () {
+        _launchURL('mailto:${socio.email}');
+      },
+    ));
+    actionButtons.add(_contactoIconButton(
+      icon: FontAwesome.facebook,
+      onPressed: () {
+        _launchURL(socio.urlFacebook);
+      },
+    ));
+    actionButtons.add(_contactoIconButton(
+      icon: FontAwesome.whatsapp,
+      onPressed: () {
+        _launchURL(socio.urlWhatsApp);
+      },
+    ));
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: actionButtons,
+    );
+  }
+
   _launchURL(String url) async {
     if (await canLaunch(url)) {
       await launch(url);
     } else {
       Fluttertoast.showToast(
         msg: 'Esta acción no está disponible',
-        toastLength: Toast.LENGTH_LONG
+        toastLength: Toast.LENGTH_LONG,
       );
     }
   }
