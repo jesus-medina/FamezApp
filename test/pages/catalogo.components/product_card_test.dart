@@ -15,13 +15,13 @@ import 'package:intl/intl.dart' show NumberFormat;
 void main() {
   final numberFormat = NumberFormat("###.00", "en_US");
   Product someProduct = Product(
+    'someId',
     name: '',
     description: '',
     urlImage: 'https://i.picsum.photos/id/9/250/250.jpg',
     urlCatalogPage: '',
     urlPictoStory: '',
     urlVideoStory: '',
-    availability: 0,
     price: 0.0
   );
 

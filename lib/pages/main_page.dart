@@ -1,3 +1,5 @@
+import 'package:famezapp/data/mappers/firebase_order_to_domain_order_mapper.dart';
+import 'package:famezapp/data/mappers/firebase_product_to_domain_product_mapper.dart';
 import 'package:famezapp/utils/platform_main_scaffold.dart';
 import 'package:famezapp/viewmodels/products_list_viewmodel.dart';
 import 'package:flutter/widgets.dart';
@@ -11,7 +13,10 @@ class MainPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ChangeNotifierProvider(
-    create: (_) => ProductListViewModel(),
+    create: (_) => ProductListViewModel(
+      FirebaseProductToDomainProductMapper(),
+      FirebaseOrderToDomainOrderMapper(),
+    ),
     child: PlatformMainScaffold(
       createAndroidWidget(),
       createIosWidget()

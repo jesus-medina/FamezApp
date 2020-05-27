@@ -124,7 +124,7 @@ class _ContactoPageState extends State<ContactoPage> {
           },
         ));
         actionButtons.add(_contactoIconButton(
-          icon: Icons.phone,
+          icon: Icons.message,
           onPressed: () {
             _launchURL('sms:${socio.phoneNumber}');
           },

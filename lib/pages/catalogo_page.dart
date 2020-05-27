@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:famezapp/domain/product_model.dart';
 import 'package:famezapp/pages/catalogo.components/product_card.dart';
 import 'package:famezapp/viewmodels/products_list_viewmodel.dart';
@@ -16,14 +15,9 @@ class CatalogoPage extends StatefulWidget {
 class _CatalogoPageState extends State<CatalogoPage> {
   ProductListViewModel vm;
 
-  List<Product> products;
-
   @override
   Widget build(BuildContext context) {
     vm = Provider.of<ProductListViewModel>(context);
-    setState(() {
-      products = vm.products;
-    });
     // _initProductsFromFirestore();
     return Scaffold(
         body: ListView(
@@ -34,12 +28,9 @@ class _CatalogoPageState extends State<CatalogoPage> {
   }
 
   List<Widget> _mapProductsToCards(BuildContext context) =>
-    products.map(
-            (product) =>
-            ProductCard(product, (productPressed) {
-              _handleClickMe(context, productPressed);
-            })
-    ).toList();
+    vm.products.map((product) => ProductCard(product, (productPressed) {
+      _handleClickMe(context, productPressed);
+    })).toList();
 
   Future<void> _handleClickMe(BuildContext context, Product productPressed) async {
     return showCupertinoModalPopup<void>(
