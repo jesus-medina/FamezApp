@@ -11,24 +11,26 @@ class ProductListViewModel extends ChangeNotifier {
   List<Product> products = [];
 
   ProductListViewModel(
-    FirebaseProductToDomainProductMapper firebaseProductToDomainProductMapper,
-    FirebaseOrderToDomainOrderMapper firebaseOrderToDomainOrderMapper) {
-    this._firebaseProductToDomainProductMapper = firebaseProductToDomainProductMapper;
+      FirebaseProductToDomainProductMapper firebaseProductToDomainProductMapper,
+      FirebaseOrderToDomainOrderMapper firebaseOrderToDomainOrderMapper) {
+    this._firebaseProductToDomainProductMapper =
+        firebaseProductToDomainProductMapper;
     this._firebaseOrderToDomainOrderMapper = firebaseOrderToDomainOrderMapper;
   }
 
   Future<void> fetchProducts() async {
     if (products.length == 0) {
-      _initProductsFromFirestore();
+      _fetchProductsFromFirestore();
     }
   }
 
-  void _initProductsFromFirestore() {
-    Firestore.instance.collection('products')
-      .orderBy('price')
-      .snapshots()
-      .listen(_loadRemoteProducts)
-      .onError(_onFirestoreError);
+  void _fetchProductsFromFirestore() {
+    Firestore.instance
+        .collection('products')
+        .orderBy('price')
+        .snapshots()
+        .listen(_loadRemoteProducts)
+        .onError(_onFirestoreErrorFetchingProduct);
   }
 
   void _loadRemoteProducts(QuerySnapshot querySnapshot) {
@@ -36,53 +38,76 @@ class ProductListViewModel extends ChangeNotifier {
     querySnapshot.documentChanges.forEach(_onFirebaseProductChange);
   }
 
-  void _onFirebaseProductChange(DocumentChange documentChange) {
-    DocumentSnapshot documentSnapshot = documentChange.document;
+  void _onFirebaseProductChange(DocumentChange productDocumentChange) {
+    DocumentSnapshot documentSnapshot = productDocumentChange.document;
     Map<String, dynamic> firebaseProduct = documentSnapshot.data;
     String documentID = documentSnapshot.documentID;
     _addOrReplaceExistentProductDocument(documentID, firebaseProduct);
   }
 
-  void _addOrReplaceExistentProductDocument(String documentID, Map<String, dynamic> firebaseProduct) {
-    Product existentProduct = _firebaseProductToDomainProductMapper
-      .map(documentID, firebaseProduct);
+  void _addOrReplaceExistentProductDocument(
+      String documentID, Map<String, dynamic> firebaseProduct) {
+    Product firestoreProduct = _firebaseProductToDomainProductMapper.map(documentID, firebaseProduct);
 
-    int index = products.indexWhere((product) => product.key == existentProduct.key);
-    _addOrReplaceExistentProduct(index, existentProduct);
+    int index = products.indexWhere((product) => product.key == firestoreProduct.key);
+    _addOrReplaceExistentProduct(index, firestoreProduct);
   }
 
-  void _addOrReplaceExistentProduct(int index, Product existentProduct) {
+  void _addOrReplaceExistentProduct(int index, Product product) {
     if (index == -1) {
-      products.add(existentProduct);
+      products.add(product);
+      _fetchOrdersFromFirebase(product);
+    } else
+      products.replaceRange(index, index + 1, [product]);
+    notifyListeners();
+  }
 
-      Firestore.instance.collection('products')
-        .document(existentProduct.key)
+  void _fetchOrdersFromFirebase(Product product) {
+    Firestore.instance
+        .collection('products')
+        .document(product.key)
         .collection('orders')
         .orderBy('arrived_date')
         .snapshots()
         .listen((QuerySnapshot querySnapshot) {
-          querySnapshot.documentChanges.forEach((DocumentChange documentChange) {
-            DocumentSnapshot documentSnapshot = documentChange.document;
-            Map<String, dynamic> firebaseOrder = documentSnapshot.data;
-            String documentID = documentSnapshot.documentID;
+      _loadRemoteOrders(querySnapshot, product);
+    }).onError((error) {
+      print(error);
+    });
+  }
 
-            Order existentOrder = _firebaseOrderToDomainOrderMapper.map(documentID, firebaseOrder);
+  void _loadRemoteOrders(QuerySnapshot querySnapshot, Product product) {
+    querySnapshot.documentChanges.forEach((DocumentChange orderDocumentChange) {
+      _onFirebaseOrderChange(orderDocumentChange, product);
+    });
+  }
 
-            int index = existentProduct.orders.indexWhere((order) => order.key == existentOrder.key);
-            if (index == -1) existentProduct.orders.add(existentOrder);
-            else existentProduct.orders.replaceRange(index, index + 1, [existentOrder]);
-            notifyListeners();
-          });
-        })
-        .onError((error) {
-          print(error);
-        });
-    }
-    else products.replaceRange(index, index + 1, [existentProduct]);
+  void _onFirebaseOrderChange(
+      DocumentChange orderDocumentChange, Product product) {
+    DocumentSnapshot documentSnapshot = orderDocumentChange.document;
+    Map<String, dynamic> firebaseOrder = documentSnapshot.data;
+    String documentID = documentSnapshot.documentID;
+    _addOrReplaceExistentOrderDocument(
+        documentID, firebaseOrder, product);
+  }
+
+  void _addOrReplaceExistentOrderDocument(String documentID,
+      Map<String, dynamic> firebaseOrder, Product product) {
+    Order firestoreOrder = _firebaseOrderToDomainOrderMapper.map(documentID, firebaseOrder);
+
+    int index = product.orders.indexWhere((order) => order.key == firestoreOrder.key);
+    _addOrReplaceExistentOrder(index, product, firestoreOrder);
+  }
+
+  void _addOrReplaceExistentOrder(int index, Product product, Order order) {
+    if (index == -1)
+      product.orders.add(order);
+    else
+      product.orders.replaceRange(index, index + 1, [order]);
     notifyListeners();
   }
 
-  void _onFirestoreError(dynamic error) {
+  void _onFirestoreErrorFetchingProduct(dynamic error) {
     print('Loaded from locale because some error');
     print(error);
     products.clear();
@@ -93,9 +118,6 @@ class ProductListViewModel extends ChangeNotifier {
 
 extension ProductListSort on List<Product> {
   void sortBy(String attribute) {
-    this.sort((a, b) =>
-      a.toMap()[attribute].compareTo(
-        b.toMap()[attribute]
-      ));
+    this.sort((a, b) => a.toMap()[attribute].compareTo(b.toMap()[attribute]));
   }
 }
